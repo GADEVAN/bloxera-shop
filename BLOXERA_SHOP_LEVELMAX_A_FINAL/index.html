@@ -1,0 +1,174 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BLOXERA SHOP — LEVEL MAX</title>
+
+<style>
+body{font-family:Arial;background:#050505;color:white;margin:0}
+header{text-align:center;padding:20px}
+.logo{max-width:240px}
+.container{max-width:1100px;margin:auto;padding:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px}
+.card{background:#101010;border:1px solid #222;border-radius:12px;padding:12px}
+button{background:#00ff9c;border:none;padding:8px 12px;border-radius:8px;font-weight:bold;cursor:pointer}
+input{width:100%;padding:8px;margin:4px 0;border-radius:6px;border:1px solid #333;background:#000;color:white}
+.cart{background:#101010;padding:15px;border-radius:12px;margin-top:20px}
+.admin{background:#0b0b0b;border:1px solid #222;padding:15px;border-radius:12px;margin-top:20px}
+.qris{max-width:260px;width:100%}
+.small{font-size:12px;color:#aaa}
+</style>
+</head>
+<body>
+
+<header>
+<h1>BLOXERA SHOP</h1>
+<p>LEVEL MAX • Stable Offline Store</p>
+<img src="logo.png" class="logo">
+</header>
+
+<div class="container">
+
+<h2>Produk</h2>
+<input placeholder="Cari produk..." oninput="search(this.value)">
+<div id="products" class="grid"></div>
+
+<div class="cart">
+<h2>Keranjang</h2>
+<div id="cart"></div>
+<b>Total: Rp <span id="total">0</span></b><br><br>
+<button onclick="orderWA()">Order WhatsApp</button>
+</div>
+
+<h2>Pembayaran</h2>
+<img src="qris.png" class="qris">
+
+<div class="admin">
+<h2>Admin Panel</h2>
+
+<div id="loginBox">
+<input type="password" id="pass" placeholder="Password Admin">
+<button onclick="login()">Login</button>
+</div>
+
+<div id="adminBox" style="display:none">
+<h3>Tambah Produk</h3>
+<input id="pname" placeholder="Nama Produk">
+<input id="pprice" type="number" placeholder="Harga">
+<button onclick="addProduct()">Tambah</button>
+
+<h3>Backup / Restore</h3>
+<button onclick="backup()">Download Backup</button>
+<input type="file" onchange="restore(event)">
+
+<button onclick="resetStore()">Reset Toko</button>
+<p class="small">Data tersimpan permanen di browser</p>
+</div>
+
+</div>
+
+</div>
+
+<script>
+const ADMIN_PASS="GAVIN123";
+let cart=[];
+let products=JSON.parse(localStorage.getItem("products")||"[]");
+
+if(products.length===0){
+products=[
+{name:"ML 86 Diamond",price:20000},
+{name:"FF 100 Diamond",price:18000},
+{name:"PUBG 60 UC",price:15000},
+{name:"Valorant 125 VP",price:22000},
+{name:"Roblox 80 Robux",price:17000}
+];
+save();
+}
+
+function save(){localStorage.setItem("products",JSON.stringify(products));renderProducts();}
+
+function renderProducts(list=products){
+let html="";
+list.forEach((p,i)=>{
+html+=`<div class="card">
+<b>${p.name}</b><br>
+Rp ${p.price}<br><br>
+<button onclick="addCart(${i})">Tambah</button>
+</div>`;
+});
+document.getElementById("products").innerHTML=html;
+}
+renderProducts();
+
+function search(q){
+q=q.toLowerCase();
+renderProducts(products.filter(p=>p.name.toLowerCase().includes(q)));
+}
+
+function addCart(i){cart.push(products[i]);renderCart();}
+function renderCart(){
+let html="";let total=0;
+cart.forEach((p,i)=>{
+html+=`${i+1}. ${p.name} - Rp ${p.price} <button onclick="removeCart(${i})">x</button><br>`;
+total+=p.price;
+});
+document.getElementById("cart").innerHTML=html;
+document.getElementById("total").innerText=total;
+}
+
+function removeCart(i){cart.splice(i,1);renderCart();}
+
+function orderWA(){
+if(cart.length==0){alert("Keranjang kosong");return;}
+let text="Halo BLOXERA SHOP, saya mau order:%0A";
+cart.forEach((p,i)=>{text+=(i+1)+". "+p.name+" - Rp "+p.price+"%0A";});
+window.open("https://wa.me/6283109566824?text="+text,"_blank");
+}
+
+function login(){
+if(document.getElementById("pass").value===ADMIN_PASS){
+document.getElementById("loginBox").style.display="none";
+document.getElementById("adminBox").style.display="block";
+}else alert("Password salah");
+}
+
+function addProduct(){
+let n=document.getElementById("pname").value;
+let h=document.getElementById("pprice").value;
+if(!n||!h)return alert("Isi lengkap");
+products.push({name:n,price:Number(h)});
+save();
+alert("Produk ditambah");
+}
+
+function backup(){
+let blob=new Blob([JSON.stringify(products)],{type:"application/json"});
+let a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="backup_bloxera.json";
+a.click();
+}
+
+function restore(e){
+let file=e.target.files[0];
+let reader=new FileReader();
+reader.onload=function(){
+products=JSON.parse(reader.result);
+save();
+alert("Restore berhasil");
+};
+reader.readAsText(file);
+}
+
+function resetStore(){
+if(confirm("Reset semua data?")){
+localStorage.removeItem("products");
+location.reload();
+}
+}
+</script>
+
+</body>
+</html>
